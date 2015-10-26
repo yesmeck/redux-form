@@ -66,7 +66,7 @@ export default function createReduxForm(isReactNative, React) {
   }
 
   return function reduxForm(config) {
-    const { form: formName, fields, validate: syncValidate, readonly, touchOnBlur, touchOnChange, asyncValidate, asyncBlurFields } = {
+    const { form: formName, validate: syncValidate, readonly, touchOnBlur, touchOnChange, asyncValidate, asyncBlurFields } = {
       validate: () => ({}),
       touchOnBlur: true,
       touchOnChange: false,
@@ -75,10 +75,8 @@ export default function createReduxForm(isReactNative, React) {
       asyncBlurFields: [],
       ...config
     };
-    if (!fields || !fields.length) {
-      throw new Error('No fields passed to redux-form. Must be passed to ' +
-        'connectReduxForm({fields: ["my", "field", "names"]})');
-    }
+
+    const fields = {};
 
     const filterProps = props => readonly ?
       Object.keys(props).reduce((accumulator, prop) =>
@@ -146,30 +144,27 @@ export default function createReduxForm(isReactNative, React) {
                   : (event) => dispatch(doChange(name, getValue(value, event)));
               }
             },
-            _fieldActions: {
+            _fieldAction: {
               params: ['_handleBlur', '_handleChange', '_handleFocus'],
               fn: (handleBlur, handleChange, handleFocus) =>
-                fields.reduce((accumulator, name) => {
+                (name) => {
                   const fieldBlur = handleBlur(name);
                   const fieldChange = handleChange(name);
                   const fieldFocus = handleFocus(name);
-                  return {
-                    ...accumulator,
-                    [name]: filterProps({
-                      handleBlur: fieldBlur,
-                      handleChange: fieldChange,
-                      handleFocus: fieldFocus,
-                      name,
-                      onBlur: fieldBlur,
-                      onChange: fieldChange,
-                      onDrop: event => {
-                        fieldChange(event.dataTransfer.getData('value'));
-                      },
-                      onFocus: fieldFocus,
-                      onUpdate: fieldChange // alias to support belle. https://github.com/nikgraf/belle/issues/58
-                    })
-                  };
-                }, {})
+                  return filterProps({
+                    handleBlur: fieldBlur,
+                    handleChange: fieldChange,
+                    handleFocus: fieldFocus,
+                    name,
+                    onBlur: fieldBlur,
+                    onChange: fieldChange,
+                    onDrop: event => {
+                      fieldChange(event.dataTransfer.getData('value'));
+                    },
+                    onFocus: fieldFocus,
+                    onUpdate: fieldChange // alias to support belle. https://github.com/nikgraf/belle/issues/58
+                  });
+                }
             }
           });
         }
@@ -216,7 +211,7 @@ export default function createReduxForm(isReactNative, React) {
 
         getValues() {
           const subForm = this.getSubForm();
-          return fields.reduce((accumulator, field) => ({
+          return Object.keys(fields).reduce((accumulator, field) => ({
             ...accumulator,
             [field]: subForm[field] ? subForm[field].value : undefined
           }), {});
@@ -235,7 +230,7 @@ export default function createReduxForm(isReactNative, React) {
           }
           const {
             _actions: actions,
-            _fieldActions: fieldActions,
+            _fieldAction: fieldAction,
             _handleBlur: handleBlur,
             _handleChange: handleChange,
             _handleFocus: handleFocus } = this.cache;
@@ -294,7 +289,11 @@ export default function createReduxForm(isReactNative, React) {
           // Define fields
           const values = this.getValues();
           const syncErrors = this.runSyncValidation(values);
-          const allFields = fields.reduce((accumulator, name) => {
+          const formError = syncErrors._error || subForm._error;
+          if (formError) {
+            allValid = false;
+          }
+          const field = (name) => {
             const field = subForm[name] || {};
             const pristine = isPristine(field.value, field.initial);
             const error = syncErrors[name] || field.asyncError || field.submitError;
@@ -306,30 +305,23 @@ export default function createReduxForm(isReactNative, React) {
             if (!pristine) {
               allPristine = false;
             }
-            return {
-              ...accumulator,
-              [name]: filterProps({
-                active: subForm._active === name,
-                checked: typeof field.value === 'boolean' ? field.value : undefined,
-                defaultChecked: initialValue,
-                defaultValue: initialValue,
-                dirty: !pristine,
-                error,
-                ...fieldActions[name],
-                invalid: !valid,
-                name,
-                onDrag: event => event.dataTransfer.setData('value', field.value),
-                pristine,
-                touched: field.touched,
-                valid: valid,
-                value: field.value,
-                visited: field.visited
-              })
-            };
-          }, {});
-          const formError = syncErrors._error || subForm._error;
-          if (formError) {
-            allValid = false;
+            return fields[name] = filterProps({
+              active: subForm._active === name,
+              checked: typeof field.value === 'boolean' ? field.value : undefined,
+              defaultChecked: initialValue,
+              defaultValue: initialValue,
+              dirty: !pristine,
+              error,
+              ...fieldAction(name),
+              invalid: !valid,
+              name,
+              onDrag: event => event.dataTransfer.setData('value', field.value),
+              pristine,
+              touched: field.touched,
+              valid: valid,
+              value: field.value,
+              visited: field.visited
+            });
           }
 
           // Return decorated component
@@ -339,7 +331,7 @@ export default function createReduxForm(isReactNative, React) {
             asyncValidating: subForm._asyncValidating,
             dirty: !allPristine,
             error: formError,
-            fields: allFields,
+            field: field,
             formKey,
             invalid: !allValid,
             pristine: allPristine,
