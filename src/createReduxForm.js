@@ -5,6 +5,7 @@ import isValid from './isValid';
 import bindActionData from './bindActionData';
 import {initialState} from './reducer';
 import lazyCache from 'react-lazy-cache';
+import {set} from 'lodash';
 
 function isReadonly(prop) {
   const writeProps = ['asyncValidate', 'handleBlur', 'handleChange', 'handleFocus',
@@ -211,10 +212,10 @@ export default function createReduxForm(isReactNative, React) {
 
         getValues() {
           const subForm = this.getSubForm();
-          return Object.keys(fields).reduce((accumulator, field) => ({
-            ...accumulator,
-            [field]: subForm[field] ? subForm[field].value : undefined
-          }), {});
+          return Object.keys(fields).reduce((accumulator, field) => {
+            const value = subForm[field] ? subForm[field].value : undefined;
+            return set(accumulator, field, value);
+          }, {});
         }
 
         componentWillReceiveProps(nextProps) {
