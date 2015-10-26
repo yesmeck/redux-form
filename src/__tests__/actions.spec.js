@@ -40,9 +40,11 @@ describe('actions', () => {
 
   it('should create initialize action', () => {
     const data = {a: 8, c: 9};
-    expect(initialize(data)).toEqual({
+    const fields = ['a', 'c'];
+    expect(initialize(data, fields)).toEqual({
       type: INITIALIZE,
-      data: data
+      data: data,
+      fields: fields
     });
   });
 

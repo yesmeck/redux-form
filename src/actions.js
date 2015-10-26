@@ -17,8 +17,8 @@ export function focus(field) {
   return {type: FOCUS, field};
 }
 
-export function initialize(data) {
-  return {type: INITIALIZE, data};
+export function initialize(data, fields = []) {
+  return {type: INITIALIZE, data, fields};
 }
 
 export function reset() {

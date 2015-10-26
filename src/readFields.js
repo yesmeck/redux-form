@@ -7,6 +7,7 @@ import isPristine from './isPristine';
 import isValid from './isValid';
 import getValues from './getValues';
 import silencePromise from './silencePromise';
+import get from 'lodash/object/get';
 
 /**
  * Reads props and generates (or updates) field structure
@@ -26,7 +27,7 @@ const readFields = (props, myFields, asyncValidate, isReactNative) => {
       // create field if it does not exist
       if (field.name !== name) {
         const onChange = createOnChange(name, change, isReactNative);
-        const initialValue = initialValues && initialValues[name];
+        const initialValue = initialValues && get(initialValues, name);
         field.name = name;
         field.defaultChecked = initialValue;
         field.defaultValue = initialValue;
