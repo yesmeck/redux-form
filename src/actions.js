@@ -17,8 +17,8 @@ export function focus(field) {
   return {type: FOCUS, field};
 }
 
-export function initialize(data) {
-  return {type: INITIALIZE, data};
+export function initialize(data, timestamp = Date.now(), fields = []) {
+  return {type: INITIALIZE, data, timestamp, fields};
 }
 
 export function reset() {
