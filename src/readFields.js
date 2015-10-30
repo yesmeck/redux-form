@@ -7,7 +7,7 @@ import isPristine from './isPristine';
 import isValid from './isValid';
 import getValues from './getValues';
 import silencePromise from './silencePromise';
-import get from 'lodash/object/get';
+import { get, set } from 'lodash/object';
 
 /**
  * Reads props and generates (or updates) field structure
@@ -56,13 +56,13 @@ const readFields = (props, myFields, asyncValidate, isReactNative) => {
       field.pristine = pristine;
 
       // update field error
-      const error = syncErrors[name] || formField.submitError || formField.asyncError;
+      const error = get(syncErrors, name) || formField.submitError || formField.asyncError;
       const valid = isValid(error);
       field.invalid = !valid;
       field.error = error;
       field.valid = valid;
       if (error) {
-        errors[name] = error;
+        set(errors, name, error);
       }
 
       field.active = form._active === name;
