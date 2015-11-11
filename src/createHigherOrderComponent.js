@@ -37,7 +37,7 @@ const createHigherOrderComponent = (config,
       componentWillMount() {
         const {initialize, initialValues, fields} = this.props;
         if (initialValues) {
-          initialize(initialValues, fields);
+          initialize(initialValues, Date.now(), fields);
         }
       }
 
