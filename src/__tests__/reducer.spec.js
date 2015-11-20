@@ -317,6 +317,7 @@ describe('reducer', () => {
   });
 
   it('should set initialize values on initialize on empty state', () => {
+    const timestamp = Date.now();
     const state = reducer({}, {
       ...initialize(nestedValues, timestamp, nestedFields),
       form: 'foo'
@@ -348,6 +349,7 @@ describe('reducer', () => {
   });
 
   it('should set initialize values on initialize on with previous state', () => {
+    const timestamp = Date.now();
     const state = reducer({
       foo: {
         name: {
