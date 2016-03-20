@@ -163,7 +163,38 @@ describe('readFields', () => {
     const nextFooBarValue = nextFields.foo.bar.value;
 
     expect(nextFooBarValue).toBe('next');
+
+    /**
+     * Fails
+     *
+     * Because nextFields is just a shallow copy of previousFields at readFields.js#29 by using spread operator,
+     * so nextFoo and previousFoo are all references of previousFields.foo,
+     */
+    expect(nextFoo.bar.value).toNotBe(previousFoo.bar.value);
+
+    /**
+     * Fails
+     *
+     * Because previousFields.foo.bar was assigned a new value at updateField.js#52,
+     * and previousFooBar is still referencing the orignal value of previousFields.foo.bar
+     */
+    expect(previousFooBar).toBe(previousFields.foo.bar);
+
+    /**
+     * Success
+     *
+     * Because string values are passing by value
+     */
     expect(nextFooBarValue).toNotBe(previousFooBarValue);
+
+
+    /**
+     * Conclusion
+     *
+     * At readFields.js#29, fields should be deep cloned.
+     */
+
+
     expect(nextFooBar).toNotBe(previousFooBar);
     expect(nextFoo).toNotBe(previousFoo);
   });
