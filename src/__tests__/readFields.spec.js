@@ -166,6 +166,9 @@ describe('readFields', () => {
     expect(nextFooBarValue).toNotBe(previousFooBarValue);
     expect(nextFooBar).toNotBe(previousFooBar);
     expect(nextFoo).toNotBe(previousFoo);
+
+    // Fails
+    expect(previousFooBar).toBe(previousFields.foo.bar);
   });
 
   it('should initialize fields', () => {
